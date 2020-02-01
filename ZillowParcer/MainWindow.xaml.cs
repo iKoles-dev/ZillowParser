@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Homebrew;
 using ZillowParser.Components;
+using ZillowParser.Rucaptcha;
 
 namespace ZillowParcer
 {
@@ -20,6 +21,10 @@ namespace ZillowParcer
             Controls.DebugBox = DebugBox;
             Controls.WorkProgress = WorkProgress;
             Controls.WorkProgressLabel = WorkProgressLabel;
+            new Thread(() =>
+            {
+                BalanceLabel.Set("Баланс ключа: " +CaptchaControl.GetBalance().Split('.')[0]+" р.");
+            }).Start();
         }
 
         private void ProgramWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -112,6 +117,7 @@ namespace ZillowParcer
             {
                 string savedFileName = fileName;
                 ExcelReader excelReader = new ExcelReader(savedFileName);
+                HouseParser houseParser = new HouseParser(excelReader.ResultValues);
 
             }).Start();
         }

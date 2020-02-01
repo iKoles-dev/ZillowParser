@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ZillowParcer"
         mc:Ignorable="d"
-        Title="[t.me/i_Koles]" Height="385" Width="640"
+        Title="[t.me/i_Koles]" Height="400" Width="640"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
@@ -39,10 +39,11 @@
             </ProgressBar.Foreground>
         </ProgressBar>
         <Label x:Name="WorkProgressLabel" Content="0%" Margin="215,340,0,0" HorizontalAlignment="Left" Width="213" FontSize="16" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="35" VerticalAlignment="Top"/>
-        <Rectangle x:Name="BaseDropDown" Fill="#FF554F4F" HorizontalAlignment="Left" Height="335" Margin="0,50,0,0" VerticalAlignment="Top" Width="640"/>
-        <Rectangle x:Name="BaseDropDown_Copy" Fill="#FF635C5C" HorizontalAlignment="Left" Height="265" Margin="35,85,0,0" Stroke="#FFB2AAAA" VerticalAlignment="Top" Width="570" StrokeDashArray="5 10" StrokeDashCap="Round" StrokeLineJoin="Round" StrokeStartLineCap="Round" AllowDrop="True" DragEnter="BaseDropDown_Copy_DragEnter" DragLeave="BaseDropDown_Copy_DragLeave" Drop="BaseDropDown_Copy_Drop"/>
-        <Label x:Name="DropLable" Content="Перетащите Excel-файл в данную область" HorizontalAlignment="Center" Margin="179,185,175,175" VerticalAlignment="Center" AllowDrop="True" DragEnter="DropLable_DragEnter" DragLeave="DropLable_DragLeave" Drop="DropLable_Drop"/>
-        <Image x:Name="ExcelImage" HorizontalAlignment="Left" Height="85" Margin="270,215,0,0" VerticalAlignment="Top" Width="85" Source="Resources/excel.png" AllowDrop="True" DragEnter="Image_DragEnter" DragLeave="Image_DragLeave" Drop="Image_Drop"/>
+        <Label x:Name="BalanceLabel" Content="Баланс ключа: 0$" HorizontalAlignment="Left" Margin="3,375,0,0" Width="212" Height="25" VerticalAlignment="Top" Foreground="#DDAAF769"/>
+        <Rectangle x:Name="BaseDropDown" Fill="#FF554F4F" HorizontalAlignment="Left" Height="350" Margin="0,50,0,0" VerticalAlignment="Top" Width="640" d:IsHidden="True"/>
+        <Rectangle x:Name="BaseDropDown_Copy" Fill="#FF635C5C" HorizontalAlignment="Left" Height="264" Margin="36,88,0,0" Stroke="#FFB2AAAA" VerticalAlignment="Top" Width="570" StrokeDashArray="5 10" StrokeDashCap="Round" StrokeLineJoin="Round" StrokeStartLineCap="Round" AllowDrop="True" DragEnter="BaseDropDown_Copy_DragEnter" DragLeave="BaseDropDown_Copy_DragLeave" Drop="BaseDropDown_Copy_Drop" d:IsHidden="True"/>
+        <Label x:Name="DropLable" Content="Перетащите Excel-файл в данную область" HorizontalAlignment="Center" Margin="180,195,174,180" VerticalAlignment="Center" AllowDrop="True" DragEnter="DropLable_DragEnter" DragLeave="DropLable_DragLeave" Drop="DropLable_Drop" d:IsHidden="True"/>
+        <Image x:Name="ExcelImage" HorizontalAlignment="Left" Height="84" Margin="271,218,0,0" VerticalAlignment="Top" Width="85" Source="Resources/excel.png" AllowDrop="True" DragEnter="Image_DragEnter" DragLeave="Image_DragLeave" Drop="Image_Drop" d:IsHidden="True"/>
     </Grid>
 
 

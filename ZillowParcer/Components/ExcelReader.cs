@@ -32,7 +32,7 @@ namespace ZillowParser.Components
             usedColumn = ObjWorkSheet.UsedRange.Columns[numCol];
             myvalues = (Array)usedColumn.Cells.Value2;
             List<string> allAdditionalValues = new List<string>(myvalues.OfType<object>().Select(o => o.ToString()).ToArray());            
-            for (int i = 0; allValues.Count>i; i++)
+            for (int i = 2; allValues.Count>i; i++)
             {
                 if (allAdditionalValues.Count <= i)
                 {
