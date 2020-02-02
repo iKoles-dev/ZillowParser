@@ -1,10 +1,14 @@
 ﻿using Homebrew;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ZillowParser.Rucaptcha;
 
 namespace ZillowParser.Components
 {
@@ -12,6 +16,7 @@ namespace ZillowParser.Components
     {
         private List<Zillow> results = new List<Zillow>();
         private int threadCount = 0;
+        private int progress = 0;
         public HouseParser(List<string> phraseForSearch)
         {
             DebugBox.WriteLine("Начинаем парсинг данных.");
@@ -25,33 +30,55 @@ namespace ZillowParser.Components
             CookieSet();
             results.ForEach(result =>
             {
-                while (threadCount > 1)
+                while (threadCount >= 200)
                 {
                     Thread.Sleep(500);
                 }
                 threadCount++;
                 ParsInfo(result);
             });
+            while (threadCount != 0)
+            {
+                Thread.Sleep(1000);
+            }
+            DebugBox.WriteLine("Парсинг завершён!");
 
         }
         private void CookieSet()
         {
-            ReqParametres reqParametres = new ReqParametres("https://www.zillow.com/");
-            reqParametres.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.53 Safari/537.36");
-            LinkParser linkParser = new LinkParser(reqParametres.Request);
-            SavedCookies = linkParser.Cookies;
+            LinkParser linkParser;
+            do
+            {
+                ReqParametres reqParametres = new ReqParametres("https://www.zillow.com/");
+                reqParametres.SetUserAgent(Useragents.GetNewUseragent());
+                //reqParametres.SetProxy();
+                if (SavedCookies != null)
+                {
+                    reqParametres.SetCookie(SavedCookies);
+                }
+                linkParser = new LinkParser(reqParametres.Request);
+                SavedCookies = linkParser.Cookies;
+            } while (isCaptcha(linkParser.Data));
         }
         private void ParsInfo(Zillow zillow)
         {
-            new Thread(()=>
+            Thread thread = new Thread(() =>
             {
-                //Парсим предварительную ссылку
-                ReqParametres reqParametres = new ReqParametres(zillow.URL);
-                reqParametres.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.53 Safari/537.36");
-                reqParametres.SetCookie(SavedCookies);
-                LinkParser linkParser = new LinkParser(reqParametres.Request);
+                LinkParser linkParser;
+                ReqParametres reqParametres;
+                do
+                {
+                    //Парсим предварительную ссылку
+                    reqParametres = new ReqParametres(zillow.URL);
+                    reqParametres.SetUserAgent(Useragents.GetNewUseragent());
+                    reqParametres.SetProxy();
+                    //reqParametres.SetCookie(SavedCookies);
+                    linkParser = new LinkParser(reqParametres.Request);
+                    SavedCookies = linkParser.Cookies;
+
+                } while (isCaptcha(linkParser.Data));
                 string newLink = linkParser.Data.ParsFromTo("<link rel=\"canonical\" href=\"", "\"");
-                SavedCookies = linkParser.Cookies;
+                //Проверяем на неверную ссылку
                 if (newLink.Contains("https://www.zillow.com/homes/for_sale/"))
                 {
                     zillow.Status = "No such adress";
@@ -59,51 +86,97 @@ namespace ZillowParser.Components
                 else
                 {
                     zillow.URL = newLink;
-                
 
-                    reqParametres = new ReqParametres(zillow.URL);
-                    reqParametres.SetUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.53 Safari/537.36");
-                    reqParametres.SetCookie(SavedCookies);
-                    linkParser = new LinkParser(reqParametres.Request);
-                    zillow.Status = CheckOnStatus(linkParser.Data);
-
+                    do
+                    {
+                        reqParametres = new ReqParametres(zillow.URL);
+                        reqParametres.SetUserAgent(Useragents.GetNewUseragent());
+                        reqParametres.SetProxy();
+                        //reqParametres.SetCookie(SavedCookies);
+                        linkParser = new LinkParser(reqParametres.Request);
+                    } while (isCaptcha(linkParser.Data));
+                    zillow.Status = CheckOnStatus(linkParser.Data.ToLower()).Replace("<span tabindex=\"0\" role=\"button\"><span class=\"zsg-tooltip-launch_keyword\">","");
+                    if (zillow.Status.Equals("Undefined"))
+                    {
+                        DebugBox.WriteLine(linkParser.Data);
+                        while (true)
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
                     //Zestimate set
-                    List<string> rawZestimate = linkParser.Data.ParsRegex("Zestimate<sup>®</sup></span></span>(.*?)\\$([0-9,./a-zA-Z]+)<",2);
+                    List<string> rawZestimate = linkParser.Data.ParsRegex("Zestimate<sup>®</sup></span></span>(.*?)\\$([0-9,./a-zA-Z]+)<", 2);
                     if (rawZestimate.Count != 0)
                     {
-                        zillow.Zestimate = "$"+rawZestimate[0];
+                        zillow.Zestimate = "$" + rawZestimate[0];
                     }
-
-                    zillow.SoldPrice = linkParser.Data.ParsFromTo("Sold<span>: <!-- -->", "</span>");
+                    zillow.SoldPrice = CheckPrice(linkParser.Data);
                     SavedCookies = linkParser.Cookies;
                 }
+                DebugBox.WriteLine(zillow.Status + " : " + zillow.Zestimate);
                 threadCount--;
-            }).Start();
-        }        
+                progress++;
+                DebugBox.WriteLine($"Обработано ссылок: {progress}.");
+                double val = 100.0f / results.Count * progress;
+                WorkProgress.SetValue(val);
+                
+            });
+            thread.IsBackground = true;
+            thread.Start();
+            
+        }
+
+        private string CheckPrice(string data)
+        {
+            if (!data.ParsFromTo("Sold<span>: <!-- -->", "</span>").Equals(""))
+            {
+                return data.ParsFromTo("Sold<span>: <!-- -->", "</span>");
+            }
+            else if (!data.ParsFromTo("ds-price\"><span><span class=\"ds-value\">", "</span>").Equals(""))
+            {
+                return data.ParsFromTo("ds-price\"><span><span class=\"ds-value\">", "</span>");
+            } else
+            {
+                return "";
+            }
+        }
         private string CheckOnStatus(string dataForCheck)
         {
-            if (dataForCheck.Contains("<span class=\"zsg-icon-recently-sold\"></span> <!-- -->Sold<span>:"))
+            if (dataForCheck.Contains("zsg-icon-recently-sold\"></span>sold</span>")||dataForCheck.Contains("zsg-icon-recently-sold\"></span> <!-- -->sold<span>: <!-- -->"))
             {
                 return "Sold";
             } 
-            else if (dataForCheck.Contains("<h2 class=\"sc-kgoBCf sc-hgHYgh brIJv\">Units</h2"))
+            else if (dataForCheck.Contains("sc-kgobcf sc-hghygh brijv"))
             {
                 return "Rent Units";
             }
-            else if (dataForCheck.Contains("<span class=\"ds-status-icon zsg-icon-for-rent\"></span>"))
+            else if (dataForCheck.Contains("ds-status-icon zsg-icon-for-rent"))
             {
-                return dataForCheck.ParsRegex("<span class=\"ds-status-icon zsg-icon-for-rent\"></span>(.*?)</span>")[0];
+                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(dataForCheck.ParsRegex("<span class=\"ds-status-icon zsg-icon-for-rent\"></span>(.*?)</span>",1)[0]);
             }
-            else if (dataForCheck.Contains("ds-status-icon zsg-icon-for-sale\"></span>"))
+            else if (dataForCheck.Contains("ds-status-icon zsg-icon-for-sale"))
             {
-                return dataForCheck.ParsRegex("ds-status-icon zsg-icon-for-sale\"></span>(.*?)</span>")[0];
-            } else if (dataForCheck.Contains("zsg-tooltip-launch_keyword\">Off Market</span>"))
+                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(dataForCheck.ParsRegex("ds-status-icon zsg-icon-for-sale\"></span>(.*?)</span>",1)[0]);
+            } 
+            else if (dataForCheck.Contains("zsg-tooltip-launch_keyword\">off market</span></span>"))
             {
                 return "Off Market";
             }
             else
             {
                 return "Undefined";
+            }
+        }
+        private bool isCaptcha(string data)
+        {
+            if (data.Contains("https://captcha.px-cdn.net/PXHYx10rg3/captcha.js") || data.Equals(""))
+            {
+                SavedCookies = new CookieContainer();
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }

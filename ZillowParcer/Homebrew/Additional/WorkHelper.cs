@@ -140,14 +140,17 @@ namespace Homebrew
         {
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
-                richTextBox.Document.Blocks.Add(new Paragraph(new Run(text)));
-                richTextBox.ScrollToEnd();
+                Write(richTextBox, text + "\n");
             }));
         }
         public static void SetValue(this ProgressBar progressBar, Double value)
         {
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
+                if (value >= 0 && value <= 100)
+                {
+                    Controls.WorkProgressLabel.Set(value.ToString("#,##") + "%");
+                }
                 progressBar.Value = value;
             }));
         }

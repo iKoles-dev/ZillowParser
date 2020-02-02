@@ -19,7 +19,7 @@
         <Image x:Name="TelegramButton" Margin="10,5,0,0" Source="Resources/TelegramButton.png" Height="35" VerticalAlignment="Top" HorizontalAlignment="Left" Width="35"/>
         <Label x:Name="Developer" Content="Support" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" MouseDown="Developer_MouseDown"/>
         <Label Content="ZillowParser" Margin="267,10,0,0" HorizontalAlignment="Left" Width="103" Height="25" VerticalAlignment="Top"/>
-        <RichTextBox x:Name="DebugBox" Height="275" Margin="0,50,0,0" VerticalAlignment="Top" FontSize="14" Block.LineHeight="6" Background="#33ECCECE" FontWeight="Normal" Foreground="#DDFFFFFF" BorderBrush="#897AFF0B" IsReadOnly="True" Padding="5,0,0,0" UseLayoutRounding="False" AllowDrop="True" VerticalScrollBarVisibility="Visible">
+        <RichTextBox x:Name="DebugBox" Height="275" Margin="0,50,0,0" VerticalAlignment="Top" FontSize="14" Block.LineHeight="6" Background="#33ECCECE" FontWeight="Normal" Foreground="#DDFFFFFF" BorderBrush="#897AFF0B" IsReadOnly="True" Padding="5,0,0,5" UseLayoutRounding="False" AllowDrop="True" VerticalScrollBarVisibility="Visible">
             <FlowDocument/>
         </RichTextBox>
         <ProgressBar x:Name="WorkProgress" Height="35" Margin="0,340,0,0" VerticalAlignment="Top" Background="#7F554F4F" BorderBrush="{x:Null}">

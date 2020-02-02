@@ -113,13 +113,15 @@ namespace ZillowParcer
         private void StartWork(string fileName)
         {
             DebugBox.WriteLine($"Получен файл {fileName}.");
-            new Thread(() =>
+            Thread thread = new Thread(() =>
             {
                 string savedFileName = fileName;
                 ExcelReader excelReader = new ExcelReader(savedFileName);
                 HouseParser houseParser = new HouseParser(excelReader.ResultValues);
 
-            }).Start();
+            });
+            thread.IsBackground = true;
+            thread.Start();
         }
 
     }
