@@ -32,7 +32,7 @@ namespace ZillowParser.Components
             usedColumn = ObjWorkSheet.UsedRange.Columns[numCol];
             myvalues = (Array)usedColumn.Cells.Value2;
             List<string> allAdditionalValues = new List<string>(myvalues.OfType<object>().Select(o => o.ToString()).ToArray());            
-            for (int i = 2; allValues.Count>i; i++)
+            for (int i = 1; allValues.Count>i; i++)
             {
                 if (allAdditionalValues.Count <= i)
                 {
@@ -41,8 +41,15 @@ namespace ZillowParser.Components
                 ResultValues.Add(allValues[i] + " " + allAdditionalValues[i]);
             }
             DebugBox.WriteLine($"Чтение файла завершено, найдено {ResultValues.Count} строк.");
+
             // Выходим из программы Excel.
+            ObjWorkBook.Close(true);
             ObjExcel.Quit();
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(ObjWorkBook);
+            ObjExcel = null;
+            ObjWorkBook = null;
+            ObjWorkSheet = null;
+            System.GC.Collect();
         }
     }
 }

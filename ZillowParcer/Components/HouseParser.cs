@@ -14,7 +14,7 @@ namespace ZillowParser.Components
 {
     public class HouseParser:Parser
     {
-        private List<Zillow> results = new List<Zillow>();
+        public List<Zillow> results = new List<Zillow>();
         private int threadCount = 0;
         private int progress = 0;
         public HouseParser(List<string> phraseForSearch)
@@ -72,7 +72,6 @@ namespace ZillowParser.Components
                     reqParametres = new ReqParametres(zillow.URL);
                     reqParametres.SetUserAgent(Useragents.GetNewUseragent());
                     reqParametres.SetProxy();
-                    //reqParametres.SetCookie(SavedCookies);
                     linkParser = new LinkParser(reqParametres.Request);
                     SavedCookies = linkParser.Cookies;
 
@@ -92,10 +91,10 @@ namespace ZillowParser.Components
                         reqParametres = new ReqParametres(zillow.URL);
                         reqParametres.SetUserAgent(Useragents.GetNewUseragent());
                         reqParametres.SetProxy();
-                        //reqParametres.SetCookie(SavedCookies);
                         linkParser = new LinkParser(reqParametres.Request);
                     } while (isCaptcha(linkParser.Data));
-                    zillow.Status = CheckOnStatus(linkParser.Data.ToLower()).Replace("<span tabindex=\"0\" role=\"button\"><span class=\"zsg-tooltip-launch_keyword\">","");
+                    zillow.Status = CheckOnStatus(linkParser.Data.ToLower()).Replace("<span tabindex=\"0\" role=\"button\"><span class=\"zsg-tooltip-launch_keyword\">","")
+                                                                            .Replace("<Span Tabindex=\"0\" Role=\"Button\"><Span Class=\"Zsg-Tooltip-Launch_Keyword\">","");
                     if (zillow.Status.Equals("Undefined"))
                     {
                         DebugBox.WriteLine(linkParser.Data);
@@ -113,10 +112,9 @@ namespace ZillowParser.Components
                     zillow.SoldPrice = CheckPrice(linkParser.Data);
                     SavedCookies = linkParser.Cookies;
                 }
-                DebugBox.WriteLine(zillow.Status + " : " + zillow.Zestimate);
                 threadCount--;
                 progress++;
-                DebugBox.WriteLine($"Обработано ссылок: {progress}.");
+                DebugBox.WriteLine($"Обработано ссылок: {progress} из {results.Count}.");
                 double val = 100.0f / results.Count * progress;
                 WorkProgress.SetValue(val);
                 
