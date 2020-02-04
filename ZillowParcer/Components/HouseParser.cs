@@ -98,18 +98,17 @@ namespace ZillowParser.Components
                     if (zillow.Status.Equals("Undefined"))
                     {
                         DebugBox.WriteLine(linkParser.Data);
-                        while (true)
-                        {
-                            Thread.Sleep(1000);
-                        }
                     }
-                    //Zestimate set
-                    List<string> rawZestimate = linkParser.Data.ParsRegex("Zestimate<sup>®</sup></span></span>(.*?)\\$([0-9,./a-zA-Z]+)<", 2);
-                    if (rawZestimate.Count != 0)
+                    else
                     {
-                        zillow.Zestimate = "$" + rawZestimate[0];
+                        //Zestimate set
+                        List<string> rawZestimate = linkParser.Data.ParsRegex("Zestimate<sup>®</sup></span></span>(.*?)\\$([0-9,./a-zA-Z]+)<", 2);
+                        if (rawZestimate.Count != 0)
+                        {
+                            zillow.Zestimate = "$" + rawZestimate[0];
+                        }
+                        zillow.SoldPrice = CheckPrice(linkParser.Data);
                     }
-                    zillow.SoldPrice = CheckPrice(linkParser.Data);
                     SavedCookies = linkParser.Cookies;
                 }
                 threadCount--;

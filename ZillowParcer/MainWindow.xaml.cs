@@ -61,7 +61,7 @@ namespace ZillowParcer
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length > 0)
             {
-                if (files[0].EndsWith(".xlsx"))
+                if (files[0].ToLower().EndsWith(".xlsx"))
                 {
                     StartWork(files[0]);
                     BaseDropDown.Visibility = Visibility.Hidden;
